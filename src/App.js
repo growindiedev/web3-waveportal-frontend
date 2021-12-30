@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import React, { useEffect, useState } from "react";
+import { abi } from "./utils/WavePortal.json";
+
 import "./App.css";
 
-export default function App() {
+const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
+  const contractAddress = "0xd5f08a0ae197482FA808cE84E00E97d940dBD26E";
+
   const checkIfWalletIsConnected = async () => {
     try {
       const { ethereum } = window;
@@ -41,7 +45,45 @@ export default function App() {
       const accounts = await ethereum.request({
         method: "eth_requestAccounts",
       });
+
       console.log("Connected", accounts[0]);
+      setCurrentAccount(accounts[0]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const wave = async () => {
+    try {
+      const { ethereum } = window;
+
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const wavePortalContract = new ethers.Contract(
+          contractAddress,
+          abi,
+          signer
+        );
+
+        let count = await wavePortalContract.getTotalWaves();
+        console.log("Retrieved total wave count...", count.toNumber());
+
+        /*
+         * Execute the actual wave from your smart contract
+         */
+
+        const waveTxn = await wavePortalContract.wave();
+        console.log("Mining...", waveTxn.hash);
+
+        await waveTxn.wait();
+        console.log("Mined --, waveTxn.hash");
+
+        count = await wavePortalContract.getTotalWaves();
+        console.log("Retrieved total wave count...", count.toNumber());
+      } else {
+        console.log("Ethereum object doesn't exist!");
+      }
     } catch (error) {
       console.log(error);
     }
@@ -50,8 +92,6 @@ export default function App() {
   useEffect(() => {
     checkIfWalletIsConnected();
   }, []);
-
-  const wave = () => {};
 
   return (
     <div className="mainContainer">
@@ -63,7 +103,7 @@ export default function App() {
           to change the world!
         </div>
 
-        <button className="waveButton" onClick={null}>
+        <button className="waveButton" onClick={wave}>
           Wave at Me
         </button>
 
@@ -75,4 +115,6 @@ export default function App() {
       </div>
     </div>
   );
-}
+};
+
+export default App;
