@@ -18,6 +18,12 @@
   font-weight: 600;
 }
 
+.inputBox {
+  margin: 20px;
+  padding: 5px;
+  color: burlywood;
+}
+
 .bio {
   text-align: center;
   color: gray;
